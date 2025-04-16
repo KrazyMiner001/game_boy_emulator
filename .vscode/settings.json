@@ -1,5 +1,10 @@
 {
     "conventionalCommits.scopes": [
         "cpu"
-    ]
+    ],
+    "files.associations": {
+        "*.typst": "typst",
+        "*.class": "plaintext",
+        "cstdint": "cpp"
+    }
 }

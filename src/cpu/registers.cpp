@@ -111,30 +111,38 @@ namespace cpu {
     }
 
     void Registers::set_af(uint16_t value) {
-        data[0] = value;
+        ((uint16_t *) data)[0] = value;
     }
 
     void Registers::set_bc(uint16_t value) {
-        data[1] = value;
+        ((uint16_t *) data)[1] = value;
     }
 
     void Registers::set_de(uint16_t value) {
-        data[2] = value;
+        ((uint16_t *) data)[2] = value;
     }
 
     void Registers::set_hl(uint16_t value) {
-        data[3] = value;
+        ((uint16_t *) data)[3] = value;
     }
 
     void Registers::set_sp(uint16_t value) {
-        data[4] = value;
+        ((uint16_t *) data)[4] = value;
     }
 
     void Registers::set_pc(uint16_t value) {
-        data[5] = value;
+        ((uint16_t *) data)[5] = value;
     }
 
     void Registers::set_r16(Register_16bit r16, uint16_t value) {
-        data[(ptrdiff_t) r16] = value;
+        ((uint16_t *) data)[(ptrdiff_t) r16] = value;
+    }
+
+    void Registers::apply_r8(Register_8bit r8, std::function<uint8_t(uint8_t)> function) {
+        data[(ptrdiff_t) r8] = function(data[(ptrdiff_t) r8]);
+    }
+
+    void Registers::apply_r16(Register_16bit r16, std::function<uint16_t(uint16_t)> function) {
+        ((uint16_t *) data)[(ptrdiff_t) r16] = function(((uint16_t *) data)[(ptrdiff_t) r16]);
     }
 }

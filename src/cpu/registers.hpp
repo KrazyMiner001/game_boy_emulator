@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <functional>
 
 namespace cpu {
     enum class Register_8bit {
@@ -59,5 +60,8 @@ namespace cpu {
             void set_pc(uint16_t value);
 
             void set_r16(Register_16bit r16, uint16_t value);
+
+            void apply_r8(Register_8bit r8, std::function<uint8_t(uint8_t)> function);
+            void apply_r16(Register_16bit r16, std::function<uint16_t(uint16_t)> function);
     };
 }
