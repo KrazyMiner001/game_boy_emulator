@@ -3,7 +3,7 @@
 namespace cpu {
     class MemoryBus {
     private:
-        uint8_t* memory;
+        uint8_t memory[0xFFFF];
 
     public:
         MemoryBus();
