@@ -145,4 +145,24 @@ namespace cpu {
     void Registers::apply_r16(Register_16bit r16, std::function<uint16_t(uint16_t)> function) {
         ((uint16_t *) data)[(ptrdiff_t) r16] = function(((uint16_t *) data)[(ptrdiff_t) r16]);
     }
+
+    Register_16bit Registers::from_rp(uint8_t rp) {
+        switch (rp) {
+            case 0: return Register_16bit::BC;
+            case 1: return Register_16bit::DE;
+            case 2: return Register_16bit::HL;
+            case 3: return Register_16bit::SP;
+            default: throw (rp);
+        }
+    }
+
+    Register_16bit Registers::from_rp2(uint8_t rp2) {
+        switch (rp2) {
+            case 0: return Register_16bit::BC;
+            case 1: return Register_16bit::DE;
+            case 2: return Register_16bit::HL;
+            case 3: return Register_16bit::AF;
+            default: throw (rp2);
+        }
+    }
 }

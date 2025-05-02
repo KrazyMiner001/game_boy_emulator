@@ -9,6 +9,10 @@ namespace cpu {
         Registers registers;
         MemoryBus memory_bus;
 
+        uint8_t read_rom();
+        void add(Register_16bit destination, uint16_t value);
+        void add(Register_8bit destination, uint8_t value);
+
     public:
         void step();
 

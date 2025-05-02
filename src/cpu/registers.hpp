@@ -63,5 +63,9 @@ namespace cpu {
 
             void apply_r8(Register_8bit r8, std::function<uint8_t(uint8_t)> function);
             void apply_r16(Register_16bit r16, std::function<uint16_t(uint16_t)> function);
+
+            static Register_16bit from_rp(uint8_t rp);
+
+            static Register_16bit from_rp2(uint8_t rp2);
     };
 }
