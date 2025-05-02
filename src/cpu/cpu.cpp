@@ -73,7 +73,7 @@ namespace cpu {
                                 }
                                 break;
                             case 7:
-                                if (registers.get_f() & 0b00010000)) {
+                                if (registers.get_f() & 0b00010000) {
                                     registers.set_pc(registers.get_sp() + read_rom());
                                 }
                                 break;
@@ -87,6 +87,7 @@ namespace cpu {
                         case 1:
                             add(Register_16bit::HL, registers.get_r16(Registers::from_rp(helper.p)));
                             break;
+                        };
                 };
                 break;
             case 1:
