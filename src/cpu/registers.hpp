@@ -67,5 +67,7 @@ namespace cpu {
             static Register_16bit from_rp(uint8_t rp);
 
             static Register_16bit from_rp2(uint8_t rp2);
+
+            static Register_8bit from_r(uint8_t r);
     };
 }

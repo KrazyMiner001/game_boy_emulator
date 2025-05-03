@@ -165,4 +165,18 @@ namespace cpu {
             default: throw (rp2);
         }
     }
+
+    Register_8bit Registers::from_r(uint8_t r) {
+        switch (r) {
+            case 0: return Register_8bit::B;
+            case 1: return Register_8bit::C;
+            case 2: return Register_8bit::D;
+            case 3: return Register_8bit::E;
+            case 4: return Register_8bit::H;
+            case 5: return Register_8bit::L;
+            case 6: throw ("6 indicates the byte pointed by HL, which is not a register. Handle before passing to Registers::from_r");
+            case 7: return Register_8bit::A;
+            default: throw (r);
+        }
+    }
 }

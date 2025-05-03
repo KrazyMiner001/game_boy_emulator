@@ -94,7 +94,97 @@ namespace cpu {
                             add_r16(Register_16bit::HL, registers.get_r16(Registers::from_rp(helper.p)));
                             break;
                         };
-                };
+                        break;
+                    case 2:
+                        switch (helper.q) {
+                            case 0:
+                                switch (helper.p) {
+                                    case 0:
+                                        memory_bus.write(registers.get_bc(), registers.get_a());
+                                        break;
+                                    case 1:
+                                        memory_bus.write(registers.get_de(), registers.get_a());
+                                        break;
+                                    case 2:
+                                        memory_bus.write(registers.get_hl(), registers.get_a());
+                                        registers.apply_r16(Register_16bit::HL, [](uint16_t value) {return value + 1;});
+                                        break;
+                                    case 3:
+                                        memory_bus.write(registers.get_hl(), registers.get_a());
+                                        registers.apply_r16(Register_16bit::HL, [](uint16_t value) {return value - 1;});
+                                        break;
+                                }
+                                break;
+                            case 1:
+                                switch (helper.p) {
+                                    case 0:
+                                        registers.set_a(memory_bus.read(registers.get_bc()));
+                                        break;
+                                    case 1:
+                                        registers.set_a(memory_bus.read(registers.get_de()));
+                                        break;
+                                    case 2:
+                                        registers.set_a(memory_bus.read(registers.get_hl()));
+                                        registers.apply_r16(Register_16bit::HL, [](uint16_t value) {return value + 1;});
+                                        break;
+                                    case 3:
+                                        registers.set_a(memory_bus.read(registers.get_hl()));
+                                        registers.apply_r16(Register_16bit::HL, [](uint16_t value) {return value - 1;});
+                                }
+                                break;
+                        };
+                        break;
+                    case 3:
+                        switch (helper.q) {
+                            switch (helper.q) {
+                                case 0:
+                                    registers.apply_r16(Registers::from_rp(helper.p), [](uint16_t value) {return value + 1;});
+                                    break;
+                                case 1:
+                                    registers.apply_r16(Registers::from_rp(helper.p), [](uint16_t value) {return value - 1;});
+                                    break;
+                            }
+                        }
+                        break;
+                    case 4:
+                        uint8_t byte;
+                        if (helper.y == 6) {
+                            byte = memory_bus.read(registers.get_hl());
+                        } else {
+                            byte = registers.get_r8(Registers::from_r(helper.y));
+                        }
+                        bool half_carry = (byte++ & 0b1000) && !(byte & 0b1000);
+                        bool zero = byte == 0;
+
+                        registers.set_f(zero << 7 | half_carry << 5 | registers.get_f() & (1 << 4));
+
+                        if (helper.y == 6) {
+                            memory_bus.write(registers.get_hl(), byte);
+                        } else {
+                            registers.set_r8(Registers::from_r(helper.y), byte);
+                        }
+
+                        break;
+                    case 5:
+                        uint8_t byte;
+                        if (helper.y == 6) {
+                            byte = memory_bus.read(registers.get_hl());
+                        } else {
+                            byte = registers.get_r8(Registers::from_r(helper.y));
+                        }
+                        bool half_carry = !(byte-- & 0b1000) && (byte & 0b1000);
+                        bool zero = byte == 0;
+
+                        registers.set_f(zero << 7 | half_carry << 5 | registers.get_f() & (1 << 4));
+
+                        if (helper.y == 6) {
+                            memory_bus.write(registers.get_hl(), byte);
+                        } else {
+                            registers.set_r8(Registers::from_r(helper.y), byte);
+                        }
+
+                        break;
+                    };
                 break;
             case 1:
                 switch (helper.z) {
