@@ -1,7 +1,7 @@
 #pragma once
 
-#include "registers.hpp"
-#include "memory.hpp"
+#include "cpu/registers.hpp"
+#include "cpu/memory.hpp"
 
 namespace cpu {
     class CPU {

@@ -1,4 +1,4 @@
-#include "registers.hpp"
+#include "cpu/registers.hpp"
 #include <stdlib.h>
 
 namespace cpu {

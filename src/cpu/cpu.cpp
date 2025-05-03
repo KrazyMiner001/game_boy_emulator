@@ -1,4 +1,4 @@
-#include "cpu.hpp"
+#include "cpu/cpu.hpp"
 
 namespace cpu {
     void CPU::add_r16(Register_16bit destination, uint16_t value) {
@@ -29,7 +29,7 @@ namespace cpu {
     }
 
     void CPU::step() {
-        uint8_t byte = read_rom();
+        uint8_t instruction = read_rom();
 
         struct {
             unsigned int x : 2;
@@ -39,24 +39,28 @@ namespace cpu {
             unsigned int q : 1;
         } helper;
         
-        helper.x = byte >> 6;
-        helper.y = byte >> 3;
-        helper.z = byte;
-        helper.p = byte >> 4;
-        helper.q = byte >> 3;
+        helper.x = instruction >> 6;
+        helper.y = instruction >> 3;
+        helper.z = instruction;
+        helper.p = instruction >> 4;
+        helper.q = instruction >> 3;
 
         switch (helper.x) {
             case 0:
+            {
                 switch (helper.z) {
                     case 0:
+                    {
                         switch (helper.y) {
                             case 0:
                                 return;
                                 break;
                             case 1:
+                            {
                                 uint16_t address = read_rom() | read_rom() << 8;
                                 registers.set_sp(memory_bus.read(address) << 8 | memory_bus.read(address + 1));
-                                break;
+                            }
+                            break;
                             case 2:
                                 //todo - implement stop
                                 break;
@@ -84,8 +88,10 @@ namespace cpu {
                                 }
                                 break;
                         };
-                        break;
+                    }
+                    break;
                     case 1:
+                    {
                         switch (helper.q) {
                         case 0:
                             registers.set_r16(Registers::from_rp(helper.p), read_rom_16bit());
@@ -94,8 +100,10 @@ namespace cpu {
                             add_r16(Register_16bit::HL, registers.get_r16(Registers::from_rp(helper.p)));
                             break;
                         };
-                        break;
+                    }
+                    break;
                     case 2:
+                    {
                         switch (helper.q) {
                             case 0:
                                 switch (helper.p) {
@@ -133,20 +141,22 @@ namespace cpu {
                                 }
                                 break;
                         };
-                        break;
+                    }
+                    break;
                     case 3:
+                    {
                         switch (helper.q) {
-                            switch (helper.q) {
-                                case 0:
-                                    registers.apply_r16(Registers::from_rp(helper.p), [](uint16_t value) {return value + 1;});
-                                    break;
-                                case 1:
-                                    registers.apply_r16(Registers::from_rp(helper.p), [](uint16_t value) {return value - 1;});
-                                    break;
-                            }
+                            case 0:
+                                registers.apply_r16(Registers::from_rp(helper.p), [](uint16_t value) {return value + 1;});
+                                break;
+                            case 1:
+                                registers.apply_r16(Registers::from_rp(helper.p), [](uint16_t value) {return value - 1;});
+                                break;
                         }
-                        break;
+                    }
+                    break;
                     case 4:
+                    {
                         uint8_t byte;
                         if (helper.y == 6) {
                             byte = memory_bus.read(registers.get_hl());
@@ -163,9 +173,10 @@ namespace cpu {
                         } else {
                             registers.set_r8(Registers::from_r(helper.y), byte);
                         }
-
-                        break;
+                    }
+                    break;
                     case 5:
+                    {
                         uint8_t byte;
                         if (helper.y == 6) {
                             byte = memory_bus.read(registers.get_hl());
@@ -182,10 +193,11 @@ namespace cpu {
                         } else {
                             registers.set_r8(Registers::from_r(helper.y), byte);
                         }
-
-                        break;
+                    }
+                    break;
                     };
-                break;
+            }
+            break;
             case 1:
                 switch (helper.z) {
 
