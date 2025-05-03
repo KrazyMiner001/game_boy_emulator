@@ -5,6 +5,7 @@
     "files.associations": {
         "*.typst": "typst",
         "*.class": "plaintext",
-        "cstdint": "cpp"
+        "cstdint": "cpp",
+        "functional": "cpp"
     }
 }

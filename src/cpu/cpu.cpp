@@ -1,7 +1,7 @@
 #include "cpu.hpp"
 
 namespace cpu {
-    void CPU::add(Register_16bit destination, uint16_t value) {
+    void CPU::add_r16(Register_16bit destination, uint16_t value) {
         uint16_t register_value = registers.get_r16(destination);
         uint16_t sum = register_value + value;
 
@@ -12,13 +12,19 @@ namespace cpu {
         registers.set_r16(destination, sum);
     }
 
-    void CPU::add(Register_8bit destination, uint8_t value) {
+    void CPU::add_r8(Register_8bit destination, uint8_t value) {
 
     }
 
     uint8_t CPU::read_rom() {
         uint8_t byte = memory_bus.read(registers.get_pc());
         registers.apply_r16(Register_16bit::PC, [](uint16_t pc){return pc + 1;});
+        return byte;
+    }
+
+    uint16_t CPU::read_rom_16bit() {
+        uint16_t byte = memory_bus.read(registers.get_pc()) | (memory_bus.read(registers.get_pc() + 1) << 8);
+        registers.apply_r16(Register_16bit::PC, [](uint16_t pc){return pc + 2;});
         return byte;
     }
 
@@ -59,22 +65,22 @@ namespace cpu {
                                 break;
                             case 4:
                                 if (!(registers.get_f() & 0b10000000)) {
-                                    registers.set_pc(registers.get_sp() + read_rom());
+                                    registers.set_pc(registers.get_sp() + ((int8_t) read_rom()));
                                 }
                                 break;
                             case 5:
                                 if (registers.get_f() & 0b10000000) {
-                                    registers.set_pc(registers.get_sp() + read_rom());
+                                    registers.set_pc(registers.get_sp() + ((int8_t) read_rom()));
                                 }
                                 break;
                             case 6:
                                 if (!(registers.get_f() & 0b00010000)) {
-                                    registers.set_pc(registers.get_sp() + read_rom());
+                                    registers.set_pc(registers.get_sp() + ((int8_t) read_rom()));
                                 }
                                 break;
                             case 7:
                                 if (registers.get_f() & 0b00010000) {
-                                    registers.set_pc(registers.get_sp() + read_rom());
+                                    registers.set_pc(registers.get_sp() + ((int8_t) read_rom()));
                                 }
                                 break;
                         };
@@ -82,10 +88,10 @@ namespace cpu {
                     case 1:
                         switch (helper.q) {
                         case 0:
-                            registers.set_r16(Registers::from_rp(helper.p), read_rom() | read_rom() << 8);
+                            registers.set_r16(Registers::from_rp(helper.p), read_rom_16bit());
                             break;
                         case 1:
-                            add(Register_16bit::HL, registers.get_r16(Registers::from_rp(helper.p)));
+                            add_r16(Register_16bit::HL, registers.get_r16(Registers::from_rp(helper.p)));
                             break;
                         };
                 };
