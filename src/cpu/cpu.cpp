@@ -217,6 +217,112 @@ namespace cpu {
                         }
                     }
                     break;
+                    case 6:
+                    {
+                        uint8_t immediate_byte = read_rom();
+                        if (helper.y == 6) {
+                            memory_bus.write(registers.get_hl(), immediate_byte);
+                        } else {
+                            registers.set_r8(Registers::from_r(helper.y), immediate_byte);
+                        }
+                    }
+                    break;
+                    case 7:
+                    {
+                        switch (helper.y) {
+                            case 0:
+                            {
+                                uint8_t old_a = registers.get_a();
+                                registers.set_f((old_a & (1 << 7)) >> 3);
+                                registers.set_a(old_a << 1 | old_a >> 7);
+                            }
+                            break;
+                            case 1:
+                            {
+                                uint8_t old_a = registers.get_a();
+                                registers.set_f((old_a & (1)) << 4);
+                                registers.set_a(old_a >> 1 | old_a << 7);
+                            }
+                            break;
+                            case 2:
+                            {
+                                uint8_t old_a = registers.get_a();
+                                bool old_carry = registers.get_f() & (1 << 4);
+
+                                registers.set_a(old_a << 1 | old_carry);
+                                registers.set_f((old_a & (1 << 7)) >> 3);
+                            }
+                            break;
+                            case 3:
+                            {
+                                uint8_t old_a = registers.get_a();
+                                bool old_carry = registers.get_f() & (1 << 4);
+
+                                registers.set_a(old_a >> 1 | old_carry << 7);
+                                registers.set_f((old_a & 1) << 4);
+                            }
+                            break;
+                            case 4:
+                            {
+                                bool carry;
+                                uint8_t adjustment = 0;
+                                if (registers.get_f() & (1 << 6)) {
+                                    if (registers.get_f() & (1 << 5)) {
+                                        adjustment += 0x6;
+                                    }
+                                    if (registers.get_f() & (1 << 4)) {
+                                        adjustment += 0x60;
+                                    }
+                                    registers.set_a(registers.get_a() - adjustment);
+                                    carry = true;
+                                } else {
+                                    if (registers.get_f() & (1 << 5) || registers.get_a() & 0xF > 0x9) {
+                                        adjustment += 0x6;
+                                    }
+                                    if (registers.get_f() & (1 << 4) || registers.get_a() > 0x99) {
+                                        adjustment += 0x60;
+                                    }
+                                    registers.set_a(registers.get_a() + adjustment);
+                                    carry = false;
+                                }
+
+                                registers.set_f(
+                                    (registers.get_a() == 0) << 7 |
+                                    registers.get_a() & (1 << 6) |
+                                    carry << 4
+                                );
+                            }
+                            break;
+                            case 5:
+                            {
+                                registers.set_a(~registers.get_a());
+                                registers.set_f(
+                                    registers.get_f() & (1 << 7) |
+                                    1 << 6 |
+                                    1 << 5 |
+                                    registers.get_f() & (1 << 4)
+                                )
+                            }
+                            break;
+                            case 6:
+                            {
+                                registers.set_f(
+                                    registers.get_f() & (1 << 7) |
+                                    1 << 4
+                                );
+                            }
+                            break;
+                            case 7:
+                            {
+                                registers.set_f(
+                                    registers.get_f() & (1 << 7) |
+                                    ~(registers.get_f() & (1 << 4))
+                                );
+                            }
+                            break;
+                        }
+                    }
+                    break;
                     };
             }
             break;
