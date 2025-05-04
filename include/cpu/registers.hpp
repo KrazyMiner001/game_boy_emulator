@@ -13,7 +13,7 @@ namespace cpu {
 
     class Registers {
         private:
-            uint8_t* data;
+            uint8_t *data;
 
         public:
             Registers();

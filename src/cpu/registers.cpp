@@ -1,9 +1,11 @@
 #include "cpu/registers.hpp"
 #include <stdlib.h>
+#include <string.h>
 
 namespace cpu {
     Registers::Registers() {
         data = (uint8_t *) malloc(12);
+        memset(data, 0, 12);
     }
 
     Registers::~Registers() {

@@ -19,6 +19,7 @@ namespace cpu {
 
     public:
         static cartridge::Cartridge cartridge;
+
         void step();
 
         void push(uint16_t value);
