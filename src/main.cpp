@@ -5,7 +5,7 @@ using namespace cpu;
 
 int main() {
     CPU cpu;
-    cpu.step();
+    //cpu.step();
 
     std::cout << "hi";
 }

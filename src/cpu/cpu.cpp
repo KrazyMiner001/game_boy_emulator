@@ -1,6 +1,28 @@
 #include "cpu/cpu.hpp"
+#include <fstream>
+#include <cstring>
+#include <iostream>
 
 namespace cpu {
+    cartridge::Cartridge CPU::cartridge = CPU::initialize_cartidge();
+    cartridge::Cartridge CPU::initialize_cartidge() {
+        std::ifstream file("D:\\Coding\\C++\\game_boy_emulator\\testrom.gb");
+
+        if (!file.is_open()) {
+            std::cerr << "Error opening the file";
+            throw 0;
+        }
+
+        file.seekg(0, std::ios::end);
+        size_t length = file.tellg();
+        file.seekg(0, std::ios::beg);
+
+        uint8_t *ptr = (uint8_t*) malloc(length);
+        file.read((char*) ptr, length);
+
+        return cartridge::Cartridge(ptr, length);
+    }
+
     void CPU::add_r16(Register_16bit destination, uint16_t value) {
         uint16_t register_value = registers.get_r16(destination);
         uint16_t sum = register_value + value;

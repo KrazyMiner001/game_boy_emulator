@@ -7,6 +7,7 @@ set(SOURCES
     src/cpu/memory.cpp
     src/cpu/registers.cpp
     src/cpu/cpu.cpp
+    src/cartridge.cpp
 )
 
 add_executable(Game_Boy_Emulator ${SOURCES})
