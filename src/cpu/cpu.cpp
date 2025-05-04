@@ -301,7 +301,7 @@ namespace cpu {
                                     1 << 6 |
                                     1 << 5 |
                                     registers.get_f() & (1 << 4)
-                                )
+                                );
                             }
                             break;
                             case 6:
