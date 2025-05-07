@@ -13,8 +13,7 @@ namespace cpu {
         std::ifstream file(path);
 
         if (!file.is_open()) {
-            std::cerr << "Error opening the file";
-            throw 0;
+            throw std::runtime_error("The file at path " + path + " failed to open");
         }
 
         file.seekg(0, std::ios::end);

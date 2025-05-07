@@ -4,7 +4,7 @@
 namespace cartridge {
     uint8_t NoMBC::read(uint16_t address) {
         if (address > 0x7FFF) {
-            throw address;
+            throw std::domain_error("Address " + std::format("{:x}", address) + " is outside of the cartridge's ROM");
         }
         return rom[address];
     }
@@ -16,7 +16,7 @@ namespace cartridge {
     }
 
     uint8_t NoRAM::read(uint16_t address) {
-        throw "This cartridge does not support RAM";
+        throw std::logic_error("This cartridge does not support RAM");
     }
 
     void NoRAM::write(uint16_t address, uint8_t value) {}
@@ -29,7 +29,7 @@ namespace cartridge {
             }
             break;
             default: {
-                throw "Not Yet Implemented";
+                throw std::invalid_argument("The ROM uses an invalid/not yet implemented cartridge type");
             }
         }
     }

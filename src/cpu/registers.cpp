@@ -1,6 +1,8 @@
 #include "cpu/registers.hpp"
 #include <stdlib.h>
 #include <string.h>
+#include <cassert>
+#include <stdexcept>
 
 namespace cpu {
     Registers::Registers() {
@@ -149,26 +151,30 @@ namespace cpu {
     }
 
     Register_16bit Registers::from_rp(uint8_t rp) {
+        assert(rp <= 3);
         switch (rp) {
             case 0: return Register_16bit::BC;
             case 1: return Register_16bit::DE;
             case 2: return Register_16bit::HL;
             case 3: return Register_16bit::SP;
-            default: throw (rp);
+            default: throw std::invalid_argument("There is no register defined by rp: " + rp);
         }
     }
 
     Register_16bit Registers::from_rp2(uint8_t rp2) {
+        assert(rp2 <= 3);
         switch (rp2) {
             case 0: return Register_16bit::BC;
             case 1: return Register_16bit::DE;
             case 2: return Register_16bit::HL;
             case 3: return Register_16bit::AF;
-            default: throw (rp2);
+            default: throw std::invalid_argument("There is no register defiend by rp2: " + rp2);
         }
     }
 
     Register_8bit Registers::from_r(uint8_t r) {
+        assert(r <= 7);
+        assert(r != 6);
         switch (r) {
             case 0: return Register_8bit::B;
             case 1: return Register_8bit::C;
@@ -176,9 +182,9 @@ namespace cpu {
             case 3: return Register_8bit::E;
             case 4: return Register_8bit::H;
             case 5: return Register_8bit::L;
-            case 6: throw ("6 indicates the byte pointed by HL, which is not a register. Handle before passing to Registers::from_r");
+            case 6: throw std::invalid_argument("r = 6 is not a register, it refers to the byte pointed to by HL");
             case 7: return Register_8bit::A;
-            default: throw (r);
+            default: throw std::invalid_argument("There is no register defined by r: " + r);
         }
     }
 }
