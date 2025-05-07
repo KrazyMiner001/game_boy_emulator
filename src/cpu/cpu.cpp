@@ -4,6 +4,8 @@
 #include <iostream>
 
 namespace cpu {
+    CPU::CPU() : memory_bus(MemoryBus(*this)) {}
+
     cartridge::Cartridge CPU::cartridge = CPU::initialize_cartidge();
     cartridge::Cartridge CPU::initialize_cartidge() {
         std::ifstream file("D:\\Coding\\C++\\game_boy_emulator\\testrom.gb");

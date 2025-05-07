@@ -2,6 +2,8 @@
 #include "cpu/cpu.hpp"
 
 namespace cpu {
+    MemoryBus::MemoryBus(CPU &cpu) : cpu(cpu) {}
+
     void MemoryBus::write(uint16_t address, uint8_t value) {
         if (address < 0x8000) {
             CPU::cartridge.rom->write(address, value);

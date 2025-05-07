@@ -18,6 +18,8 @@ namespace cpu {
         void add_r8(Register_8bit destination, uint8_t value);
 
     public:
+        CPU();
+
         static cartridge::Cartridge cartridge;
 
         void step();
