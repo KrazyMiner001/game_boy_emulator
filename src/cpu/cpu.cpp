@@ -4,11 +4,13 @@
 #include <iostream>
 
 namespace cpu {
-    CPU::CPU() : memory_bus(MemoryBus(*this)) {}
+    CPU::CPU(std::string rom_path) 
+    : memory_bus(MemoryBus(*this))
+    , cartridge(initialize_cartidge(rom_path)) {}
 
-    cartridge::Cartridge CPU::cartridge = CPU::initialize_cartidge();
-    cartridge::Cartridge CPU::initialize_cartidge() {
-        std::ifstream file("D:\\Coding\\C++\\game_boy_emulator\\testrom.gb");
+    //Cartridge CPU::cartridge = CPU::initialize_cartidge();
+    Cartridge CPU::initialize_cartidge(std::string path) {
+        std::ifstream file(path);
 
         if (!file.is_open()) {
             std::cerr << "Error opening the file";

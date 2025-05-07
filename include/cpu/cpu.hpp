@@ -3,6 +3,9 @@
 #include "cpu/registers.hpp"
 #include "cartridge.hpp"
 #include "cpu/memory.hpp"
+#include <string>
+
+using namespace cartridge;
 
 namespace cpu {
     class CPU {
@@ -10,7 +13,7 @@ namespace cpu {
         Registers registers;
         MemoryBus memory_bus;
 
-        static cartridge::Cartridge initialize_cartidge();
+        static Cartridge initialize_cartidge(std::string path);
 
         uint8_t read_rom();
         uint16_t read_rom_16bit();
@@ -18,9 +21,9 @@ namespace cpu {
         void add_r8(Register_8bit destination, uint8_t value);
 
     public:
-        CPU();
+        CPU(std::string rom_path);
 
-        static cartridge::Cartridge cartridge;
+        Cartridge cartridge;
 
         void step();
 
