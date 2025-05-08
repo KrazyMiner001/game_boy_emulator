@@ -191,7 +191,7 @@ namespace cpu {
                         bool half_carry = (byte++ & 0b1000) && !(byte & 0b1000);
                         bool zero = byte == 0;
 
-                        registers.set_f(zero << 7 | half_carry << 5 | registers.get_f() & (1 << 4));
+                        registers.set_f(zero << 7 | half_carry << 5 | (registers.get_f() & (1 << 4)));
 
                         if (helper.y == 6) {
                             memory_bus.write(registers.get_hl(), byte);
@@ -211,7 +211,7 @@ namespace cpu {
                         bool half_carry = !(byte-- & 0b1000) && (byte & 0b1000);
                         bool zero = byte == 0;
 
-                        registers.set_f(zero << 7 | half_carry << 5 | registers.get_f() & (1 << 4));
+                        registers.set_f(zero << 7 | half_carry << 5 | (registers.get_f() & (1 << 4)));
 
                         if (helper.y == 6) {
                             memory_bus.write(registers.get_hl(), byte);
@@ -279,7 +279,7 @@ namespace cpu {
                                     registers.set_a(registers.get_a() - adjustment);
                                     carry = true;
                                 } else {
-                                    if (registers.get_f() & (1 << 5) || registers.get_a() & 0xF > 0x9) {
+                                    if (registers.get_f() & (1 << 5) || (registers.get_a() & 0xF) > 0x9) {
                                         adjustment += 0x6;
                                     }
                                     if (registers.get_f() & (1 << 4) || registers.get_a() > 0x99) {
@@ -291,7 +291,7 @@ namespace cpu {
 
                                 registers.set_f(
                                     (registers.get_a() == 0) << 7 |
-                                    registers.get_a() & (1 << 6) |
+                                    (registers.get_a() & (1 << 6)) |
                                     carry << 4
                                 );
                             }
@@ -300,17 +300,17 @@ namespace cpu {
                             {
                                 registers.set_a(~registers.get_a());
                                 registers.set_f(
-                                    registers.get_f() & (1 << 7) |
+                                    (registers.get_f() & (1 << 7)) |
                                     1 << 6 |
                                     1 << 5 |
-                                    registers.get_f() & (1 << 4)
+                                    (registers.get_f() & (1 << 4))
                                 );
                             }
                             break;
                             case 6:
                             {
                                 registers.set_f(
-                                    registers.get_f() & (1 << 7) |
+                                    (registers.get_f() & (1 << 7)) |
                                     1 << 4
                                 );
                             }
@@ -318,7 +318,7 @@ namespace cpu {
                             case 7:
                             {
                                 registers.set_f(
-                                    registers.get_f() & (1 << 7) |
+                                    (registers.get_f() & (1 << 7)) |
                                     ~(registers.get_f() & (1 << 4))
                                 );
                             }

@@ -1,5 +1,7 @@
 #include "cartridge.hpp"
 #include <cstring>
+#include <stdexcept>
+#include <format>
 
 namespace cartridge {
     uint8_t NoMBC::read(uint16_t address) {
