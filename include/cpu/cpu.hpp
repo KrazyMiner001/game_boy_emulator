@@ -10,6 +10,17 @@ using namespace cartridge;
 namespace cpu {
     class CPU {
     private:
+        enum class ALU_Instruction {
+            ADD_A,
+            ADC_A,
+            SUB,
+            SBC_A,
+            AND,
+            XOR,
+            OR,
+            CP
+        };
+
         Registers registers;
         MemoryBus memory_bus;
 
@@ -18,7 +29,8 @@ namespace cpu {
         uint8_t read_rom();
         uint16_t read_rom_16bit();
         void add_r16(Register_16bit destination, uint16_t value);
-        void add_r8(Register_8bit destination, uint8_t value);
+
+        void perform_alu_operation(ALU_Instruction instruction, uint8_t value);
 
     public:
         CPU(std::string rom_path);

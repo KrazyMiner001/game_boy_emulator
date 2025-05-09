@@ -37,8 +37,119 @@ namespace cpu {
         registers.set_r16(destination, sum);
     }
 
-    void CPU::add_r8(Register_8bit destination, uint8_t value) {
+    void CPU::perform_alu_operation(ALU_Instruction instruction, uint8_t value) {
+        switch (instruction) {
+            case ALU_Instruction::ADD_A:
+            {
+                uint8_t new_value = registers.get_a() + value;
+                bool carry = (registers.get_a() > 0xFF - value);
+                bool half_carry = (registers.get_a() & 0xF) + (value & 0xF) > 0xF;
+                bool zero = (bool) new_value;
 
+                registers.set_f(
+                    (zero << 7) |
+                    (half_carry << 5) |
+                    (carry << 4)
+                );
+                registers.set_a(new_value);
+            }
+            break;
+            case ALU_Instruction::ADC_A:
+            {
+                uint8_t new_value = registers.get_a() + value;
+                uint8_t old_carry = registers.get_f() & (1 << 4);
+                bool carry = (registers.get_a() > 0xFF - old_carry - value);
+                bool half_carry = (registers.get_a() & 0xF) + (value & 0xF) + old_carry > 0xF;
+                bool zero = (bool) new_value;
+
+                registers.set_f(
+                    (zero << 7) |
+                    (half_carry << 5) |
+                    (carry << 4)
+                );
+                registers.set_a(new_value);
+            }
+            break;
+            case ALU_Instruction::SUB:
+            {
+                uint8_t new_value = registers.get_a() - value;
+                bool zero = new_value;
+                bool half_carry = (value & 0xF) > (registers.get_a() & 0xF);
+                bool carry = value > registers.get_a();
+
+                registers.set_f(
+                    (zero << 7) |
+                    (1 << 6) |
+                    (half_carry << 5) |
+                    (carry << 4)
+                );
+                registers.set_a(new_value);
+            }
+            break;
+            case ALU_Instruction::SBC_A:
+            {
+                uint8_t old_carry = registers.get_f() & (1 << 4);
+                uint8_t new_value = registers.get_a() - value - old_carry;
+                bool zero = new_value;
+                bool half_carry = (value & 0xF + old_carry) > (registers.get_a() & 0xF);
+                bool carry = (value + old_carry) > registers.get_a();
+
+                registers.set_f(
+                    (zero << 7) |
+                    (1 << 6) |
+                    (half_carry << 5) |
+                    (carry << 4)
+                );
+                registers.set_a(new_value);
+            }
+            break;
+            case ALU_Instruction::AND:
+            {
+                uint8_t new_value = registers.get_a() & value;
+                bool zero = new_value;
+                registers.set_f(
+                    (zero << 7) |
+                    (1 << 5)
+                );
+                registers.set_a(new_value);
+            }
+            break;
+            case ALU_Instruction::XOR:
+            {
+                uint8_t new_value = registers.get_a() ^ value;
+                bool zero = new_value;
+                registers.set_f(
+                    (zero << 7)
+                );
+                registers.set_a(new_value);
+            }
+            break;
+            case ALU_Instruction::OR:
+            {
+                uint8_t new_value = registers.get_a() | value;
+                bool zero = new_value;
+                registers.set_f(
+                    (zero << 7)
+                );
+                registers.set_a(new_value);
+            }
+            break;
+            case ALU_Instruction::CP:
+            {
+                uint8_t new_value = registers.get_a() - value;
+                bool zero = new_value;
+                bool half_carry = (value & 0xF) > (registers.get_a() & 0xF);
+                bool carry = value > registers.get_a();
+
+                registers.set_f(
+                    (zero << 7) |
+                    (1 << 6) |
+                    (half_carry << 5) |
+                    (carry << 4)
+                );
+            }
+            break;
+        }
     }
 
     uint8_t CPU::read_rom() {
@@ -352,7 +463,13 @@ namespace cpu {
             break;
             case 2:
             {
-                switch(helper.z) {}
+                uint8_t input_byte;
+                if (helper.z == 6) {
+                    input_byte = memory_bus.read(registers.get_hl());
+                } else {
+                    input_byte = registers.get_r8(Registers::from_r(helper.z));
+                }
+                perform_alu_operation((ALU_Instruction) helper.y, input_byte);
             }
             break;
             case 3:
