@@ -330,20 +330,36 @@ namespace cpu {
             }
             break;
             case 1:
-                switch (helper.z) {
+            {
+                if (helper.y == 6 && helper.z == 6) {
+                    //Todo - Implement HALT;
+                    break;
+                }
 
-                };
-                break;
+                uint8_t from_byte;
+                if (helper.z == 6) {
+                    from_byte = memory_bus.read(registers.get_hl());
+                } else {
+                    from_byte = registers.get_r8(Registers::from_r(helper.z));
+                }
+
+                if (helper.y == 6) {
+                    memory_bus.write(registers.get_hl(), from_byte);
+                } else {
+                    registers.set_r8(Registers::from_r(helper.y), from_byte);
+                }
+            }
+            break;
             case 2:
-                switch (helper.z) {
-
-                };
-                break;
+            {
+                switch(helper.z) {}
+            }
+            break;
             case 3:
-                switch (helper.z) {
-
-                };
-                break;
+            {
+                switch(helper.z) {}
+            }
+            break;
         };
     }
 
