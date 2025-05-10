@@ -20,6 +20,9 @@ namespace cpu {
             OR,
             CP
         };
+        enum class ROT_Instruction {
+            RLC, RRC, RL, RR, SLA, SRA, SWAP, SRL
+        };
 
         Registers registers;
         MemoryBus memory_bus;
@@ -31,6 +34,7 @@ namespace cpu {
         void add_r16(Register_16bit destination, uint16_t value);
 
         void perform_alu_operation(ALU_Instruction instruction, uint8_t value);
+        uint8_t perform_rot_operation(ROT_Instruction instruction, uint8_t value);
 
     public:
         CPU(std::string rom_path);
