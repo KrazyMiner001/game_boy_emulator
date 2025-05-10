@@ -8,7 +8,6 @@ namespace cpu {
     : memory_bus(MemoryBus(*this))
     , cartridge(initialize_cartidge(rom_path)) {}
 
-    //Cartridge CPU::cartridge = CPU::initialize_cartidge();
     Cartridge CPU::initialize_cartidge(std::string path) {
         std::ifstream file(path);
 
@@ -474,7 +473,219 @@ namespace cpu {
             break;
             case 3:
             {
-                switch(helper.z) {}
+                switch(helper.z) {
+                    case 0:
+                    {
+                        switch(helper.y) {
+                            case 0:
+                            {
+                                if (!(registers.get_f() & (1 << 7))) {
+                                    registers.set_pc(pop());
+                                }
+                            }
+                            break;
+                            case 1: {
+                                if (registers.get_f() & (1 << 7)) {
+                                    registers.set_pc(pop());
+                                }
+                            }
+                            break;
+                            case 2: {
+                                if (!(registers.get_f() & (1 << 4))) {
+                                    registers.set_pc(pop());
+                                }
+                            }
+                            break;
+                            case 3: {
+                                if (registers.get_f() & (1 << 4)) {
+                                    registers.set_pc(pop());
+                                }
+                            }
+                            break;
+                            case 4: {
+                                memory_bus.write(0xFF00 + read_rom(), registers.get_a());
+                            }
+                            break;
+                            case 5: {
+                                int8_t add_byte = (int8_t) read_rom();
+                                uint16_t stack_pointer = registers.get_sp();
+
+                                bool carry = ((stack_pointer & 0xFF) > (0xFF - stack_pointer));
+                                bool half_carry = (stack_pointer & 0xF) + (add_byte & 0xF) > 0xF;
+
+                                registers.set_sp(stack_pointer + add_byte);
+                                registers.set_f(
+                                    (half_carry << 5) |
+                                    (carry << 4)
+                                );
+                            }
+                            break;
+                            case 6: {
+                                registers.set_a(memory_bus.read(0xFF00 + read_rom()));
+                            }
+                            break;
+                            case 7: {
+                                int8_t add_byte = (int8_t) read_rom();
+                                uint16_t stack_pointer = registers.get_sp();
+
+                                bool carry = ((stack_pointer & 0xFF) > (0xFF - stack_pointer));
+                                bool half_carry = (stack_pointer & 0xF) + (add_byte & 0xF) > 0xF;
+
+                                registers.set_sp(stack_pointer + add_byte);
+                                registers.set_hl(registers.get_sp());
+                                registers.set_f(
+                                    (half_carry << 5) |
+                                    (carry << 4)
+                                );
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                    case 1: {
+                        if (helper.q == 0) {
+                            registers.set_r16(Registers::from_rp2(helper.p), pop());
+                        } else {
+                            switch (helper.p) {
+                                case 0: {
+                                    registers.set_pc(pop());
+                                }
+                                break;
+                                case 1: {
+                                    registers.set_pc(pop());
+                                    //Todo - Needs Interrupts - Enable Interrupts after this instruction
+                                }
+                                case 2: {
+                                    registers.set_pc(registers.get_hl());
+                                }
+                                break;
+                                case 3: {
+                                    registers.set_sp(registers.get_hl());
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                    case 2: {
+                        switch(helper.y) {
+                            case 0:
+                            {
+                                if (!(registers.get_f() & (1 << 7))) {
+                                    registers.set_pc(read_rom_16bit());
+                                }
+                            }
+                            break;
+                            case 1: {
+                                if (registers.get_f() & (1 << 7)) {
+                                    registers.set_pc(read_rom_16bit());
+                                }
+                            }
+                            break;
+                            case 2: {
+                                if (!(registers.get_f() & (1 << 4))) {
+                                    registers.set_pc(read_rom_16bit());
+                                }
+                            }
+                            break;
+                            case 3: {
+                                if (registers.get_f() & (1 << 4)) {
+                                    registers.set_pc(read_rom_16bit());
+                                }
+                            }
+                            break;
+                            case 4: {
+                                memory_bus.write(0xFF00 + registers.get_c(), registers.get_a());
+                            }
+                            break;
+                            case 5: {
+                                memory_bus.write(read_rom_16bit(), registers.get_a());
+                            }
+                            break;
+                            case 6: {
+                                registers.set_a(memory_bus.read(0xFF00 + registers.get_c()));
+                            }
+                            break;
+                            case 7: {
+                                registers.set_a(memory_bus.read(read_rom_16bit()));
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                    case 3: {
+                        switch (helper.y) {
+                            case 0: {
+                                registers.set_pc(read_rom_16bit());
+                            }
+                            break;
+                            case 1: {
+                                std::cerr << "A $CB instruction somehow made it to main instruction parser instead of being interpretted as a prefix.";
+                            }
+                            break;
+                            case 6: {
+                                //Todo - Requires Interrrupts - Implement DI
+                            }
+                            break;
+                            case 7: {
+                                //Todo - Requires Interrupts - Implement EI
+                            }
+                        }
+                    }
+                    break;
+                    case 4: {
+                        switch(helper.y) {
+                            case 0:
+                            {
+                                if (!(registers.get_f() & (1 << 7))) {
+                                    push(registers.get_pc());
+                                    registers.set_pc(read_rom_16bit());
+                                }
+                            }
+                            break;
+                            case 1: {
+                                if (registers.get_f() & (1 << 7)) {
+                                    push(registers.get_pc());
+                                    registers.set_pc(read_rom_16bit());
+                                }
+                            }
+                            break;
+                            case 2: {
+                                if (!(registers.get_f() & (1 << 4))) {
+                                    push(registers.get_pc());
+                                    registers.set_pc(read_rom_16bit());
+                                }
+                            }
+                            break;
+                            case 3: {
+                                if (registers.get_f() & (1 << 4)) {
+                                    push(registers.get_pc());
+                                    registers.set_pc(read_rom_16bit());
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                    case 5: {
+                        if (helper.q == 0) {
+                            push(registers.get_r16(Registers::from_rp2(helper.p)));
+                        } else if (helper.p == 0) {
+                            push(registers.get_pc());
+                            registers.set_pc(read_rom_16bit());
+                        }
+                    }
+                    break;
+                    case 6: {
+                        perform_alu_operation((ALU_Instruction) helper.y, read_rom());
+                    }
+                    break;
+                    case 7: {
+                        push(registers.get_pc());
+                        registers.set_pc(helper.y * 8);
+                    }
+                    break;
+                }
             }
             break;
         };
