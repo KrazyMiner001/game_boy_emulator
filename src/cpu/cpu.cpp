@@ -92,7 +92,7 @@ namespace cpu {
                 uint8_t old_carry = registers.get_f() & (1 << 4);
                 uint8_t new_value = registers.get_a() - value - old_carry;
                 bool zero = new_value == 0;
-                bool half_carry = (value & 0xF + old_carry) > (registers.get_a() & 0xF);
+                bool half_carry = ((value & 0xF) + old_carry) > (registers.get_a() & 0xF);
                 bool carry = (value + old_carry) > registers.get_a();
 
                 registers.set_f(
