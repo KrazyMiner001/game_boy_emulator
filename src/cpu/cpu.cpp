@@ -6,7 +6,9 @@
 namespace cpu {
     CPU::CPU(std::string rom_path) 
     : memory_bus(MemoryBus(*this))
-    , cartridge(initialize_cartidge(rom_path)) {}
+    , cartridge(initialize_cartidge(rom_path)) {
+        memory_bus.write(0xFF44, 0x90); //Todo remove this when screen exists
+    }
 
     Cartridge CPU::initialize_cartidge(std::string path) {
         std::ifstream file(path);
@@ -43,7 +45,7 @@ namespace cpu {
                 uint8_t new_value = registers.get_a() + value;
                 bool carry = (registers.get_a() > 0xFF - value);
                 bool half_carry = (registers.get_a() & 0xF) + (value & 0xF) > 0xF;
-                bool zero = (bool) new_value;
+                bool zero = new_value == 0;
 
                 registers.set_f(
                     (zero << 7) |
@@ -59,7 +61,7 @@ namespace cpu {
                 uint8_t old_carry = registers.get_f() & (1 << 4);
                 bool carry = (registers.get_a() > 0xFF - old_carry - value);
                 bool half_carry = (registers.get_a() & 0xF) + (value & 0xF) + old_carry > 0xF;
-                bool zero = (bool) new_value;
+                bool zero = new_value == 0;
 
                 registers.set_f(
                     (zero << 7) |
@@ -72,7 +74,7 @@ namespace cpu {
             case ALU_Instruction::SUB:
             {
                 uint8_t new_value = registers.get_a() - value;
-                bool zero = new_value;
+                bool zero = new_value == 0;
                 bool half_carry = (value & 0xF) > (registers.get_a() & 0xF);
                 bool carry = value > registers.get_a();
 
@@ -89,7 +91,7 @@ namespace cpu {
             {
                 uint8_t old_carry = registers.get_f() & (1 << 4);
                 uint8_t new_value = registers.get_a() - value - old_carry;
-                bool zero = new_value;
+                bool zero = new_value == 0;
                 bool half_carry = (value & 0xF + old_carry) > (registers.get_a() & 0xF);
                 bool carry = (value + old_carry) > registers.get_a();
 
@@ -105,7 +107,7 @@ namespace cpu {
             case ALU_Instruction::AND:
             {
                 uint8_t new_value = registers.get_a() & value;
-                bool zero = new_value;
+                bool zero = new_value == 0;
                 registers.set_f(
                     (zero << 7) |
                     (1 << 5)
@@ -116,7 +118,7 @@ namespace cpu {
             case ALU_Instruction::XOR:
             {
                 uint8_t new_value = registers.get_a() ^ value;
-                bool zero = new_value;
+                bool zero = new_value == 0;
                 registers.set_f(
                     (zero << 7)
                 );
@@ -126,7 +128,7 @@ namespace cpu {
             case ALU_Instruction::OR:
             {
                 uint8_t new_value = registers.get_a() | value;
-                bool zero = new_value;
+                bool zero = new_value == 0;
                 registers.set_f(
                     (zero << 7)
                 );
@@ -136,7 +138,7 @@ namespace cpu {
             case ALU_Instruction::CP:
             {
                 uint8_t new_value = registers.get_a() - value;
-                bool zero = new_value;
+                bool zero = new_value == 0;
                 bool half_carry = (value & 0xF) > (registers.get_a() & 0xF);
                 bool carry = value > registers.get_a();
 
@@ -227,7 +229,7 @@ namespace cpu {
             break;
             case ROT_Instruction::SWAP: {
                 uint8_t new_value = (value >> 4) | (value << 4);
-                bool zero = new_value == zero;
+                bool zero = new_value == 0;
                 registers.set_f(zero << 7);
                 return new_value;
             }
@@ -306,7 +308,7 @@ namespace cpu {
                         source_value = registers.get_r8(Registers::from_r(helper.z));
                     }
 
-                    bool zero = source_value & (1 << helper.y);
+                    bool zero = !(source_value & (1 << helper.y));
                     registers.set_f(
                         (zero << 7) | 
                         (1 << 5) |
@@ -370,26 +372,34 @@ namespace cpu {
                                     //todo - implement stop
                                     break;
                                 case 3:
-                                    registers.set_pc(registers.get_sp() + read_rom());
+                                    registers.set_pc(registers.get_pc() + ((int8_t) read_rom()) + 1);
                                     break;
                                 case 4:
                                     if (!(registers.get_f() & 0b10000000)) {
-                                        registers.set_pc(registers.get_sp() + ((int8_t) read_rom()));
+                                        registers.set_pc(registers.get_pc() + ((int8_t) read_rom()) + 1);
+                                    } else {
+                                        read_rom();
                                     }
                                     break;
                                 case 5:
                                     if (registers.get_f() & 0b10000000) {
-                                        registers.set_pc(registers.get_sp() + ((int8_t) read_rom()));
+                                        registers.set_pc(registers.get_pc() + ((int8_t) read_rom()) + 1);
+                                    } else {
+                                        read_rom();
                                     }
                                     break;
                                 case 6:
                                     if (!(registers.get_f() & 0b00010000)) {
-                                        registers.set_pc(registers.get_sp() + ((int8_t) read_rom()));
+                                        registers.set_pc(registers.get_pc() + ((int8_t) read_rom()) + 1);
+                                    } else {
+                                        read_rom();
                                     }
                                     break;
                                 case 7:
                                     if (registers.get_f() & 0b00010000) {
-                                        registers.set_pc(registers.get_sp() + ((int8_t) read_rom()));
+                                        registers.set_pc(registers.get_pc() + ((int8_t) read_rom()) + 1);
+                                    } else {
+                                        read_rom();
                                     }
                                     break;
                             };
@@ -468,7 +478,8 @@ namespace cpu {
                             } else {
                                 byte = registers.get_r8(Registers::from_r(helper.y));
                             }
-                            bool half_carry = (byte++ & 0b1000) && !(byte & 0b1000);
+                            uint8_t new_value = byte + 1;
+                            bool half_carry = (byte & 0b1000) && !(new_value & 0b1000);
                             bool zero = byte == 0;
     
                             registers.set_f(zero << 7 | half_carry << 5 | (registers.get_f() & (1 << 4)));
@@ -476,7 +487,7 @@ namespace cpu {
                             if (helper.y == 6) {
                                 memory_bus.write(registers.get_hl(), byte);
                             } else {
-                                registers.set_r8(Registers::from_r(helper.y), byte);
+                                registers.set_r8(Registers::from_r(helper.y), new_value);
                             }
                         }
                         break;
@@ -741,26 +752,30 @@ namespace cpu {
                             switch(helper.y) {
                                 case 0:
                                 {
+                                    uint16_t location = read_rom_16bit();
                                     if (!(registers.get_f() & (1 << 7))) {
-                                        registers.set_pc(read_rom_16bit());
+                                        registers.set_pc(location);
                                     }
                                 }
                                 break;
                                 case 1: {
+                                    uint16_t location = read_rom_16bit();
                                     if (registers.get_f() & (1 << 7)) {
-                                        registers.set_pc(read_rom_16bit());
+                                        registers.set_pc(location);
                                     }
                                 }
                                 break;
                                 case 2: {
+                                    uint16_t location = read_rom_16bit();
                                     if (!(registers.get_f() & (1 << 4))) {
-                                        registers.set_pc(read_rom_16bit());
+                                        registers.set_pc(location);
                                     }
                                 }
                                 break;
                                 case 3: {
+                                    uint16_t location = read_rom_16bit();
                                     if (registers.get_f() & (1 << 4)) {
-                                        registers.set_pc(read_rom_16bit());
+                                        registers.set_pc(location);
                                     }
                                 }
                                 break;
@@ -807,30 +822,34 @@ namespace cpu {
                             switch(helper.y) {
                                 case 0:
                                 {
+                                    uint16_t location = read_rom_16bit();
                                     if (!(registers.get_f() & (1 << 7))) {
                                         push(registers.get_pc());
-                                        registers.set_pc(read_rom_16bit());
+                                        registers.set_pc(location);
                                     }
                                 }
                                 break;
                                 case 1: {
+                                    uint16_t location = read_rom_16bit();
                                     if (registers.get_f() & (1 << 7)) {
                                         push(registers.get_pc());
-                                        registers.set_pc(read_rom_16bit());
+                                        registers.set_pc(location);
                                     }
                                 }
                                 break;
                                 case 2: {
+                                    uint16_t location = read_rom_16bit();
                                     if (!(registers.get_f() & (1 << 4))) {
                                         push(registers.get_pc());
-                                        registers.set_pc(read_rom_16bit());
+                                        registers.set_pc(location);
                                     }
                                 }
                                 break;
                                 case 3: {
+                                    uint16_t location = read_rom_16bit();
                                     if (registers.get_f() & (1 << 4)) {
                                         push(registers.get_pc());
-                                        registers.set_pc(read_rom_16bit());
+                                        registers.set_pc(location);
                                     }
                                 }
                                 break;
@@ -874,7 +893,7 @@ namespace cpu {
         value |= memory_bus.read(registers.get_sp());
         registers.apply_r16(Register_16bit::SP, [](uint16_t sp){return sp + 1;});
         value |= memory_bus.read(registers.get_sp()) << 8;
-        registers.apply_r16(Register_16bit::SP, [](uint16_t sp){return sp - 1;});
+        registers.apply_r16(Register_16bit::SP, [](uint16_t sp){return sp + 1;});
         return value;
     }
 }

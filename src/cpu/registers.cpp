@@ -15,35 +15,35 @@ namespace cpu {
     }
 
     uint8_t Registers::get_a() {
-        return data[0];
+        return data[(ptrdiff_t) Register_8bit::A];
     }
 
     uint8_t Registers::get_f() {
-        return data[1];
+        return data[(ptrdiff_t) Register_8bit::F];
     }
 
     uint8_t Registers::get_b() {
-        return data[2];
+        return data[(ptrdiff_t) Register_8bit::B];
     }
 
     uint8_t Registers::get_c() {
-        return data[3];
+        return data[(ptrdiff_t) Register_8bit::C];
     }
 
     uint8_t Registers::get_d() {
-        return data[4];
+        return data[(ptrdiff_t) Register_8bit::D];
     }
 
     uint8_t Registers::get_e() {
-        return data[5];
+        return data[(ptrdiff_t) Register_8bit::E];
     }
 
     uint8_t Registers::get_h() {
-        return data[6];
+        return data[(ptrdiff_t) Register_8bit::H];
     }
 
     uint8_t Registers::get_l() {
-        return data[7];
+        return data[(ptrdiff_t) Register_8bit::L];
     }
 
     uint8_t Registers::get_r8(Register_8bit r8) {
@@ -51,27 +51,27 @@ namespace cpu {
     }
 
     uint16_t Registers::get_af() {
-        return ((uint16_t *) data)[0];
+        return ((uint16_t *) data)[(ptrdiff_t) Register_16bit::AF];
     }
 
     uint16_t Registers::get_bc() {
-        return ((uint16_t *) data)[1];
+        return ((uint16_t *) data)[(ptrdiff_t) Register_16bit::BC];
     }
 
     uint16_t Registers::get_de() {
-        return ((uint16_t *) data)[2];
+        return ((uint16_t *) data)[(ptrdiff_t) Register_16bit::DE];
     }
 
     uint16_t Registers::get_hl() {
-        return ((uint16_t *) data)[3];
+        return ((uint16_t *) data)[(ptrdiff_t) Register_16bit::HL];
     }
 
     uint16_t Registers::get_sp() {
-        return ((uint16_t *) data)[4];
+        return ((uint16_t *) data)[(ptrdiff_t) Register_16bit::SP];
     }
 
     uint16_t Registers::get_pc() {
-        return ((uint16_t *) data)[5];
+        return ((uint16_t *) data)[(ptrdiff_t) Register_16bit::PC];
     }
 
     uint16_t Registers::get_r16(Register_16bit r16) {
@@ -79,35 +79,35 @@ namespace cpu {
     }
 
     void Registers::set_a(uint8_t value) {
-        data[0] = value;
+        data[(ptrdiff_t) Register_8bit::A] = value;
     }
 
     void Registers::set_f(uint8_t value) {
-        data[1] = value;
+        data[(ptrdiff_t) Register_8bit::F] = value;
     }
 
     void Registers::set_b(uint8_t value) {
-        data[2] = value;
+        data[(ptrdiff_t) Register_8bit::B] = value;
     }
 
     void Registers::set_c(uint8_t value) {
-        data[3] = value;
+        data[(ptrdiff_t) Register_8bit::C] = value;
     }
 
     void Registers::set_d(uint8_t value) {
-        data[4] = value;
+        data[(ptrdiff_t) Register_8bit::D] = value;
     }
 
     void Registers::set_e(uint8_t value) {
-        data[5] = value;
+        data[(ptrdiff_t) Register_8bit::E] = value;
     }
 
     void Registers::set_h(uint8_t value) {
-        data[6] = value;
+        data[(ptrdiff_t) Register_8bit::H] = value;
     }
 
     void Registers::set_l(uint8_t value) {
-        data[7] = value;
+        data[(ptrdiff_t) Register_8bit::L] = value;
     }
 
     void Registers::set_r8(Register_8bit r8, uint8_t value) {
@@ -115,27 +115,27 @@ namespace cpu {
     }
 
     void Registers::set_af(uint16_t value) {
-        ((uint16_t *) data)[0] = value;
+        ((uint16_t *) data)[(ptrdiff_t) Register_16bit::AF] = value;
     }
 
     void Registers::set_bc(uint16_t value) {
-        ((uint16_t *) data)[1] = value;
+        ((uint16_t *) data)[(ptrdiff_t) Register_16bit::BC] = value;
     }
 
     void Registers::set_de(uint16_t value) {
-        ((uint16_t *) data)[2] = value;
+        ((uint16_t *) data)[(ptrdiff_t) Register_16bit::DE] = value;
     }
 
     void Registers::set_hl(uint16_t value) {
-        ((uint16_t *) data)[3] = value;
+        ((uint16_t *) data)[(ptrdiff_t) Register_16bit::HL] = value;
     }
 
     void Registers::set_sp(uint16_t value) {
-        ((uint16_t *) data)[4] = value;
+        ((uint16_t *) data)[(ptrdiff_t) Register_16bit::SP] = value;
     }
 
     void Registers::set_pc(uint16_t value) {
-        ((uint16_t *) data)[5] = value;
+        ((uint16_t *) data)[(ptrdiff_t) Register_16bit::PC] = value;
     }
 
     void Registers::set_r16(Register_16bit r16, uint16_t value) {

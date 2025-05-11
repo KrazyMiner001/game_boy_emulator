@@ -4,7 +4,14 @@
 
 namespace cpu {
     enum class Register_8bit {
-        A, F, B, C, D, E, H, L
+        A = 1, 
+        F = 0, 
+        B = 3, 
+        C = 2, 
+        D = 5, 
+        E = 4, 
+        H = 7, 
+        L = 6
     };
 
     enum class Register_16bit {
