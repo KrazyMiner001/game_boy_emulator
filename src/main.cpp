@@ -1,18 +1,20 @@
 #include <iostream>
-#include "cpu/cpu.hpp"
-
-using namespace cpu;
+#include "emulator.hpp"
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 
 int main(int argc, char **argv) {
+    SDL_Init(SDL_INIT_VIDEO);
+
     if (argc < 2) {
         std::cout << "Invalid command. Usage: Game_Boy_Emulator [file path]";
         return 0;
     }
 
-    CPU cpu(argv[1]);
+    GameBoyEmulator emulator(argv[1]);
     
-    for (int i = 0; true; i++) {
-        cpu.step();
+    while (emulator.should_step) {
+        emulator.step();
     }
 
     std::cout << "hi";
