@@ -6,11 +6,18 @@
 namespace graphics {
     class Graphics {
         private:
+            enum class Mode {
+                Mode_1, Mode_2, Mode_3, Mode_4
+            };
+
             cpu::CPU* CPU;
             SDL_Renderer* renderer;
             SDL_Texture* texture;
 
             uint8_t LY;
+            Mode mode;
+            uint8_t SCY;
+            uint8_t SCX;
 
             struct {
                 bool LCD_Enable;
