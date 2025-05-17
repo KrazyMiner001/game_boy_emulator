@@ -9,6 +9,8 @@ using namespace cartridge;
 
 namespace cpu {
     class CPU {
+        friend graphics::Graphics;
+
     private:
         enum class ALU_Instruction {
             ADD_A,
