@@ -5,6 +5,7 @@ namespace cpu {
     class CPU;
 
     class MemoryBus {
+        friend graphics::Graphics;
     private:
         uint8_t memory[0x4000];
         uint8_t vram[0x2000];

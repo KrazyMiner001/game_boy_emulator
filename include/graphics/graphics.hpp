@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cpu/cpu.hpp"
+#include "graphics/oam.hpp"
 #include <SDL3/SDL.h>
 
 namespace graphics {
@@ -29,6 +30,12 @@ namespace graphics {
                 bool obj_enable;
                 bool background_and_window_enable;
             } LCDC;
+
+            OAM_Object line_objects[10];
+
+            uint8_t cycle_counter = 0;
+            uint8_t x_coordinate;
+            uint8_t line_objects_index = 0;
 
         public:
             Graphics(cpu::CPU* CPU, SDL_Renderer* renderer);

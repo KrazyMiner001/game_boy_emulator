@@ -18,5 +18,9 @@ void GameBoyEmulator::step() {
     }
 
     CPU.step();
+    
+    GPU.step(); // 4 Dots per M-cycle
+    GPU.step();
+    GPU.step();
     GPU.step();
 }

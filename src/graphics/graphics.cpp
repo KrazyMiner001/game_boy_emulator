@@ -31,11 +31,33 @@ namespace graphics {
             }
             break;
             case Mode::Mode_2: {
+                if (cycle_counter > 80) {
+                    cycle_counter = 0;
+                    mode = Mode::Mode_3;
+                    break;
+                }
+                if (cycle_counter % 2 == 0) {
+                    OAM_Object *oam = (OAM_Object *)(CPU->memory_bus.memory + 0xFE00);
+                    OAM_Object object = oam[cycle_counter / 2];
 
+                    if (
+                        (object.x_position > 0) &&
+                        (LY + 16 >= object.y_position) &&
+                        (LY + 16 < object.y_position + 8 + 8 * LCDC.obj_size) &&
+                        (line_objects_index < 10)
+                    ) {
+                        line_objects[line_objects_index] = object;
+                        line_objects_index++;
+                    }
+                }
+                cycle_counter++;
             }
             break;
             case Mode::Mode_3: {
-                         
+                if (cycle_counter < SCX % 8) {
+                    break;
+                }
+                cycle_counter++;
             }
             break;
             case Mode::Mode_4: {
@@ -43,7 +65,5 @@ namespace graphics {
             }
             break;
         }
-
-        CPU->memory_bus.write(0xFF44, LY);
     }
 }
