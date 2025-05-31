@@ -82,8 +82,8 @@ namespace graphics {
                                     | (LX >> 3);
                             } else {
                                 fetch_address |= (LCDC.background_tile_map_area << 10)
-                                    | (((LY + get_memory(0xFF42)) >> 3) << 5)
-                                    | ((LX + get_memory(0xFF43)) >> 3);
+                                    | (((LY + SCY) >> 3) << 5)
+                                    | ((LX + SCX) >> 3);
                             }
 
                             //Now begins second dot
@@ -104,7 +104,7 @@ namespace graphics {
                                 if (pixel_fetcher_memory.in_window) {
                                     fetch_address |= (get_memory(0xFF4A) % 8) << 1; 
                                 } else {
-                                    fetch_address |= ((LY + get_memory(0xFF42)) % 8) << 1;
+                                    fetch_address |= ((LY + SCY) % 8) << 1;
                                 }
                             }
 
@@ -121,7 +121,7 @@ namespace graphics {
                                 if (pixel_fetcher_memory.in_window) {
                                     fetch_address |= (get_memory(0xFF4A) % 8) << 1; 
                                 } else {
-                                    fetch_address |= ((LY + get_memory(0xFF42)) % 8) << 1;
+                                    fetch_address |= ((LY + SCY) % 8) << 1;
                                 }
                             }
 
@@ -189,6 +189,14 @@ namespace graphics {
             }
             break;
         }
+
+        set_memory(0xFF44, LY);
+        uint8_t LYC = get_memory(0xFF45);
+
+        uint8_t old_stat = get_memory(0xFF41);
+        //Todo: interrupts
+
+        set_memory(0xFF41, (old_stat & 0b11111000) | ((uint8_t) mode) | ((LYC == LY) << 2));
     }
 
     void Graphics::change_mode() {
@@ -200,6 +208,14 @@ namespace graphics {
             SDL_SetRenderTarget(renderer, texture);
         } else if (mode == Mode::Mode_3 && LX >= 160) {
             mode = Mode::Mode_0;
+            //Todo should be interrupts here
+        } else if (mode == Mode::Mode_0 && cycle_counter >= 204) {
+            mode = Mode::Mode_1;
+            cycle_counter = 0;
+            LX = 0;
+            LY++;
+        } else if (mode == Mode::Mode_1 && cycle_counter >= 4560) {
+            mode = Mode::Mode_2;
         }
     }
 
@@ -213,5 +229,13 @@ namespace graphics {
         } else {
             return (get_memory(0xFF48) & (0b11 << (2 * color))) >> (2 * color);
         }
+    }
+
+    uint8_t Graphics::get_memory(uint16_t address) {
+        return CPU->memory_bus.read(address);
+    }
+
+    void Graphics::set_memory(uint16_t address, uint8_t value) {
+        CPU->memory_bus.write(address, value);
     }
 }
