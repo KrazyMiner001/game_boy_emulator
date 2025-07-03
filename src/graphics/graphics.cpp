@@ -90,35 +90,35 @@ namespace graphics {
                     switch (pixel_fetcher_mode) {
                         case Pixel_Fetcher_Mode::Get_Tile: {
                             //Todo: OBJ Fetcher
-                            // uint16_t fetch_address = 0b10011'00000000000;
+                            uint16_t fetch_address = 0b10011'00000000000;
                             // pixel_fetcher_memory.in_window = ((LY >= get_memory(0xFF4A)) && (LX >= (get_memory(0xFF4B) - 7)));
+                            if (pixel_fetcher_memory.in_window) {
+                                fetch_address |= (LCDC.window_tile_map_area << 10)
+                                    | (((pixel_fetcher_memory.window_line_counter + SCY - 1) >> 3) << 5)
+                                    | (LX >> 3);
+                            } else {
+                                fetch_address |= (LCDC.background_tile_map_area << 10)
+                                    | (((LY + SCY) >> 3) << 5)
+                                    | ((LX + SCX) >> 3);
+                            }
+
+                            // uint16_t fetch_address = 0x9800;
                             // if (pixel_fetcher_memory.in_window) {
-                            //     fetch_address |= (LCDC.window_tile_map_area << 10)
-                            //         | ((get_memory(0xFF4A) >> 3) << 5)
-                            //         | (LX >> 3);
+                            //     fetch_address |= LCDC.window_tile_map_area << 10;
                             // } else {
-                            //     fetch_address |= (LCDC.background_tile_map_area << 10)
-                            //         | (((LY + SCY) >> 3) << 5)
-                            //         | ((LX + SCX) >> 3);
+                            //     fetch_address |= LCDC.background_tile_map_area << 10;
                             // }
 
-                            uint16_t fetch_address = 0x9800;
-                            if (pixel_fetcher_memory.in_window) {
-                                fetch_address |= LCDC.window_tile_map_area << 10;
-                            } else {
-                                fetch_address |= LCDC.background_tile_map_area << 10;
-                            }
+                            // uint16_t offset = pixel_fetcher_memory.fetcher_x;
+                            // offset += (SCX >> 3) * !pixel_fetcher_memory.in_window;
+                            // offset &= 0x1f;
+                            // fetch_address += offset;
 
-                            uint16_t offset = pixel_fetcher_memory.fetcher_x;
-                            offset += (SCX >> 3) * !pixel_fetcher_memory.in_window;
-                            offset &= 0x1f;
-                            fetch_address += offset;
-
-                            if (pixel_fetcher_memory.in_window) {
-                                fetch_address += (((LY + SCY) & 0xFF) >> 3) << 5;
-                            } else {
-                                fetch_address += (pixel_fetcher_memory.window_line_counter >> 3) << 5;
-                            }
+                            // if (pixel_fetcher_memory.in_window) {
+                            //     fetch_address += (pixel_fetcher_memory.window_line_counter >> 3) << 5;
+                            // } else {
+                            //     fetch_address += (((LY + SCY) & 0xFF) >> 3) << 5;
+                            // }
 
                             //Now begins second dot
 
@@ -244,6 +244,15 @@ namespace graphics {
         uint8_t LYC = get_memory(0xFF45);
 
         uint8_t old_stat = get_memory(0xFF41);
+
+        if (
+            ((old_stat & 0b0'1000'000) && (LYC == LY)) ||
+            ((old_stat & 0b0'0100'000) && (mode == Mode::Mode_2)) ||
+            ((old_stat & 0b0'0010'000) && (mode == Mode::Mode_1)) ||
+            ((old_stat & 0b0'0001'000) && (mode == Mode::Mode_0))
+        ) { //STAT interrupt conditions
+            set_memory(0xFF0F, get_memory(0xFF0F) | 0b000'00010);
+        }
 
         set_memory(0xFF41, (old_stat & 0b11111000) | ((uint8_t) mode) | ((LYC == LY) << 2));
     }

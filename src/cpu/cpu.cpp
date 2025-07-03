@@ -262,6 +262,14 @@ namespace cpu {
     }
 
     void CPU::step() {
+        if (HALT) {
+            if (memory_bus.read(0xFFFF) & memory_bus.read(0xFF0F)) {
+                HALT = false;
+            } else {
+                return;
+            }
+        }
+
         if (IME) {
             uint8_t IE = memory_bus.read(0xFFFF);
             uint8_t IF = memory_bus.read(0xFF0F);

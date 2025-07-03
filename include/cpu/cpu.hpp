@@ -33,6 +33,7 @@ namespace cpu {
         Registers registers;
         MemoryBus memory_bus;
         bool IME;
+        bool HALT;
 
         static Cartridge initialize_cartidge(std::string path);
 
