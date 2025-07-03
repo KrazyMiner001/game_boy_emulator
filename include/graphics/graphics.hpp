@@ -5,6 +5,10 @@
 #include <SDL3/SDL.h>
 #include <queue>
 
+namespace cpu {
+    class CPU;
+}
+
 namespace graphics {
     typedef struct fifo_pixel {
         uint8_t color : 2;
@@ -47,9 +51,12 @@ namespace graphics {
                 uint8_t tile_id;
                 uint8_t tile_row_low;
                 uint8_t tile_row_high;
+                uint8_t fetcher_x;
+                uint8_t window_line_counter;
                 bool obj_fetcher : 1;
                 bool in_window : 1;
                 bool ready_to_push : 1;
+                bool window_scanline : 1;
             } pixel_fetcher_memory;
 
             OAM_Object line_objects[10];

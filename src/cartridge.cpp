@@ -18,7 +18,8 @@ namespace cartridge {
     }
 
     uint8_t NoRAM::read(uint16_t address) {
-        throw std::logic_error("This cartridge does not support RAM");
+        //throw std::logic_error("This cartridge does not support RAM");
+        return 0;
     }
 
     void NoRAM::write(uint16_t address, uint8_t value) {}

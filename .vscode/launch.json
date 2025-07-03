@@ -13,7 +13,7 @@
             "program": "${workspaceFolder}/${config:mesonbuild.buildFolder}/gbemu",
             "cwd": "${workspaceFolder}",
             "args": [
-                "testrom.gb"
+                "hello.gb"
             ]
         }
     ]

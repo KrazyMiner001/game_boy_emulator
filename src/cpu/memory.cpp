@@ -17,6 +17,12 @@ namespace cpu {
     }
 
     uint8_t MemoryBus::read(uint16_t address) {
+        if (address < 0x100) {
+            if (!read(0xFF50)) {
+                return dmg_boot_rom[address];
+            }
+        }
+
         if (address < 0x8000) {
             return cpu.cartridge.rom->read(address);
         } else if (address < 0xA000) {

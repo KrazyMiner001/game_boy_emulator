@@ -1,4 +1,5 @@
 #include "graphics/graphics.hpp"
+#include <iostream>
 
 namespace graphics {
     Graphics::Graphics(cpu::CPU* CPU, SDL_Renderer* renderer)
@@ -6,7 +7,9 @@ namespace graphics {
         , renderer(renderer)
         , texture(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB32, SDL_TEXTUREACCESS_TARGET, 160, 144))
         , mode(Mode::Mode_2)
+        , pixel_fetcher_mode(Pixel_Fetcher_Mode::Get_Tile)
         {
+            SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
             pixel_fetcher_memory.obj_fetcher = false;
             pixel_fetcher_memory.ready_to_push = false;
         }
@@ -27,6 +30,7 @@ namespace graphics {
         LCDC.background_and_window_enable = LCDC_byte & 1;
 
         change_mode();
+        cycle_counter++;
 
         switch(mode) {
             case Mode::Mode_0: {
@@ -34,12 +38,14 @@ namespace graphics {
             }
             break;
             case Mode::Mode_1: {
-                         
+                if (cycle_counter % 456 == 0) {
+                    LY++;
+                }
             }
             break;
             case Mode::Mode_2: {
                 if (cycle_counter % 2 == 0) {
-                    OAM_Object *oam = (OAM_Object *)(CPU->memory_bus.memory + 0xFE00);
+                    OAM_Object *oam = (OAM_Object *)(CPU->memory_bus.memory + 0x3E00);
                     OAM_Object object = oam[cycle_counter / 2];
 
                     if (
@@ -52,10 +58,20 @@ namespace graphics {
                         line_objects_index++;
                     }
                 }
-                cycle_counter++;
             }
             break;
             case Mode::Mode_3: {
+                pixel_fetcher_memory.in_window = ((LY >= get_memory(0xFF4A)) && (LX >= (get_memory(0xFF4B) - 7)));
+
+                if (!pixel_fetcher_memory.window_scanline && pixel_fetcher_memory.in_window) {
+                    pixel_fetcher_memory.window_line_counter++;
+                    pixel_fetcher_memory.window_scanline = true;
+                    while (!background_fifo.empty()) {
+                        background_fifo.pop();
+                    }
+                    pixel_fetcher_mode = Pixel_Fetcher_Mode::Get_Tile;
+                }
+
                 if (cycle_counter % 2 == 0) {
                     if (pixel_fetcher_memory.ready_to_push && background_fifo.size() <= 8) {
                         if (!pixel_fetcher_memory.obj_fetcher) {
@@ -63,7 +79,7 @@ namespace graphics {
                                 fifo_pixel pixel;
                                 pixel.background_priority = 0;
                                 pixel.palette = 0;
-                                pixel.color = ((pixel_fetcher_memory.tile_row_high & (1 << (7 - i))) >> (7 - i)) | ((pixel_fetcher_memory.tile_row_low & (1 << (7 - i))) >> (6 - i));
+                                pixel.color = ((pixel_fetcher_memory.tile_row_high & (1 << (7 - i))) >> (7 - i)) | ((pixel_fetcher_memory.tile_row_low & (1 << (7 - i))) >> (7 - i));
                                 background_fifo.push(pixel);
                             }
                         }
@@ -74,16 +90,34 @@ namespace graphics {
                     switch (pixel_fetcher_mode) {
                         case Pixel_Fetcher_Mode::Get_Tile: {
                             //Todo: OBJ Fetcher
-                            uint16_t fetch_address = 0b10011'00000000000;
-                            pixel_fetcher_memory.in_window = ((LY >= get_memory(0xFF4A)) && (LX >= (get_memory(0xFF4B) - 7)));
+                            // uint16_t fetch_address = 0b10011'00000000000;
+                            // pixel_fetcher_memory.in_window = ((LY >= get_memory(0xFF4A)) && (LX >= (get_memory(0xFF4B) - 7)));
+                            // if (pixel_fetcher_memory.in_window) {
+                            //     fetch_address |= (LCDC.window_tile_map_area << 10)
+                            //         | ((get_memory(0xFF4A) >> 3) << 5)
+                            //         | (LX >> 3);
+                            // } else {
+                            //     fetch_address |= (LCDC.background_tile_map_area << 10)
+                            //         | (((LY + SCY) >> 3) << 5)
+                            //         | ((LX + SCX) >> 3);
+                            // }
+
+                            uint16_t fetch_address = 0x9800;
                             if (pixel_fetcher_memory.in_window) {
-                                fetch_address |= (LCDC.window_tile_map_area << 10)
-                                    | ((get_memory(0xFF4A) >> 3) << 5)
-                                    | (LX >> 3);
+                                fetch_address |= LCDC.window_tile_map_area << 10;
                             } else {
-                                fetch_address |= (LCDC.background_tile_map_area << 10)
-                                    | (((LY + SCY) >> 3) << 5)
-                                    | ((LX + SCX) >> 3);
+                                fetch_address |= LCDC.background_tile_map_area << 10;
+                            }
+
+                            uint16_t offset = pixel_fetcher_memory.fetcher_x;
+                            offset += (SCX >> 3) * !pixel_fetcher_memory.in_window;
+                            offset &= 0x1f;
+                            fetch_address += offset;
+
+                            if (pixel_fetcher_memory.in_window) {
+                                fetch_address += (((LY + SCY) & 0xFF) >> 3) << 5;
+                            } else {
+                                fetch_address += (pixel_fetcher_memory.window_line_counter >> 3) << 5;
                             }
 
                             //Now begins second dot
@@ -99,16 +133,19 @@ namespace graphics {
                             uint16_t fetch_address = 0b100'000000000000'0;
                             fetch_address |= (pixel_fetcher_memory.tile_id << 4);
                             if (!pixel_fetcher_memory.obj_fetcher) {
-                                fetch_address |= !((LCDC.background_and_window_tile_data_area) || (pixel_fetcher_memory.tile_id & 0x80));
+                                fetch_address |= !((LCDC.background_and_window_tile_data_area) || (pixel_fetcher_memory.tile_id & 0x80)) << 12;
 
                                 if (pixel_fetcher_memory.in_window) {
-                                    fetch_address |= (get_memory(0xFF4A) % 8) << 1; 
+                                    fetch_address |= ((pixel_fetcher_memory.window_line_counter + SCY - 1) % 8) << 1; 
                                 } else {
                                     fetch_address |= ((LY + SCY) % 8) << 1;
                                 }
                             }
 
                             pixel_fetcher_memory.tile_row_low = get_memory(fetch_address); //Fetch address should be in VRAM;
+
+                            //Change mode
+                            pixel_fetcher_mode = Pixel_Fetcher_Mode::Get_Tile_Data_High;
                         }
                         break;
                         case Pixel_Fetcher_Mode::Get_Tile_Data_High: {
@@ -116,25 +153,36 @@ namespace graphics {
                             uint16_t fetch_address = 0b100'000000000000'1;
                             fetch_address |= (pixel_fetcher_memory.tile_id << 4);
                             if (!pixel_fetcher_memory.obj_fetcher) {
-                                fetch_address |= !((LCDC.background_and_window_tile_data_area) || (pixel_fetcher_memory.tile_id & 0x80));
+                                fetch_address |= !((LCDC.background_and_window_tile_data_area) || (pixel_fetcher_memory.tile_id & 0x80)) << 12;
 
                                 if (pixel_fetcher_memory.in_window) {
-                                    fetch_address |= (get_memory(0xFF4A) % 8) << 1; 
+                                    fetch_address |= ((pixel_fetcher_memory.window_line_counter + SCY - 1) % 8) << 1; 
                                 } else {
                                     fetch_address |= ((LY + SCY) % 8) << 1;
                                 }
                             }
 
                             pixel_fetcher_memory.tile_row_high = get_memory(fetch_address); //Fetch address should be in VRAM;
+
+                            //Change mode
+                            pixel_fetcher_mode = Pixel_Fetcher_Mode::Sleep;
                         }
                         break;
                         case Pixel_Fetcher_Mode::Sleep: {
                             pixel_fetcher_memory.ready_to_push = true;
+
+                            //Chane mode
+                            pixel_fetcher_mode = Pixel_Fetcher_Mode::Get_Tile;
+                            pixel_fetcher_memory.fetcher_x++;
                         }
                     }
                 }
 
                 if (pixel_fetcher_memory.obj_fetcher) {
+                    break;
+                }
+
+                if (background_fifo.size() == 0) {
                     break;
                 }
 
@@ -171,7 +219,7 @@ namespace graphics {
                     break;
                 }
 
-                uint8_t draw_color_8bit = 85 * draw_color; // 85 = 255/3
+                uint8_t draw_color_8bit = 85 * draw_color; // 85 = 255/3y
 
                 SDL_SetRenderDrawColor(
                     renderer,
@@ -185,7 +233,9 @@ namespace graphics {
                     renderer,
                     LX,
                     LY
-                );                
+                );
+                
+                LX++;
             }
             break;
         }
@@ -205,17 +255,30 @@ namespace graphics {
             cycle_counter = 0;
             background_fifo = {};
             object_fifo = {};
+            pixel_fetcher_memory.window_scanline = false;
             SDL_SetRenderTarget(renderer, texture);
         } else if (mode == Mode::Mode_3 && LX >= 160) {
             mode = Mode::Mode_0;
-            //Todo should be interrupts here
-        } else if (mode == Mode::Mode_0 && cycle_counter >= 204) {
-            mode = Mode::Mode_1;
+            pixel_fetcher_memory.fetcher_x = 0;
+        } else if (mode == Mode::Mode_0 && cycle_counter >= 376) {
+            if (LY > 143) {
+                pixel_fetcher_memory.window_line_counter = 0;
+                mode = Mode::Mode_1;
+            } else {
+                mode = Mode::Mode_2;
+            }
             cycle_counter = 0;
             LX = 0;
             LY++;
         } else if (mode == Mode::Mode_1 && cycle_counter >= 4560) {
             mode = Mode::Mode_2;
+            SDL_SetRenderTarget(renderer, NULL);
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_RenderClear(renderer);
+            SDL_RenderTexture(renderer, texture, NULL, NULL);
+            SDL_RenderPresent(renderer);
+
+            LY = 0;
         }
     }
 

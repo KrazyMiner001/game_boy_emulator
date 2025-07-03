@@ -17,5 +17,5 @@ int main(int argc, char **argv) {
         emulator.step();
     }
 
-    std::cout << "hi";
+    return 1;
 }

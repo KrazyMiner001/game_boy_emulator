@@ -7,9 +7,13 @@
 
 using namespace cartridge;
 
+namespace graphics {
+    class Graphics;
+}
+
 namespace cpu {
     class CPU {
-        friend graphics::Graphics;
+        friend class graphics::Graphics;
 
     private:
         enum class ALU_Instruction {

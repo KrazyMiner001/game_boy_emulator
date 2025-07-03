@@ -7,7 +7,7 @@ namespace cpu {
     CPU::CPU(std::string rom_path) 
     : memory_bus(MemoryBus(*this))
     , cartridge(initialize_cartidge(rom_path)) {
-        memory_bus.write(0xFF44, 0x90); //Todo remove this when screen exists
+        //memory_bus.write(0xFF44, 0x90); //Todo remove this when screen exists
     }
 
     Cartridge CPU::initialize_cartidge(std::string path) {
