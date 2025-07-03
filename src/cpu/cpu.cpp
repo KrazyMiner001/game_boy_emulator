@@ -6,7 +6,8 @@
 namespace cpu {
     CPU::CPU(std::string rom_path) 
     : memory_bus(MemoryBus(*this))
-    , cartridge(initialize_cartidge(rom_path)) {
+    , cartridge(initialize_cartidge(rom_path))
+    , IME(false) {
         //memory_bus.write(0xFF44, 0x90); //Todo remove this when screen exists
     }
 
@@ -261,6 +262,37 @@ namespace cpu {
     }
 
     void CPU::step() {
+        if (IME) {
+            uint8_t IE = memory_bus.read(0xFFFF);
+            uint8_t IF = memory_bus.read(0xFF0F);
+
+            uint8_t interrupts = IE & IF;
+
+            if (interrupts) {
+                IME = false;
+                push(registers.get_pc());
+
+                if (interrupts & 0b000'00001) { //VBlank
+                    IF &= ~(0b000'00001);
+                    registers.set_pc(0x40);
+                } else if (interrupts & 0b000'00010) { //LCD
+                    IF &= ~(0b000'00010);
+                    registers.set_pc(0x48);
+                } else if (interrupts & 0b000'00100) { //Timer
+                    IF &= ~(0b000'00100);
+                    registers.set_pc(0x50);
+                } else if (interrupts & 0b000'01000) { //Serial
+                    IF &= ~(0b000'01000);
+                    registers.set_pc(0x58);
+                } else if (interrupts & 0b000'10000) { //Joypad
+                    IF &= ~(0b000'10000);
+                    registers.set_pc(0x60);
+                }
+
+                memory_bus.write(0xFF0F, IF);
+            }
+        }
+
         uint8_t instruction = read_rom();
         bool is_prefix = instruction == 0xCB;
         if (is_prefix) {
@@ -734,7 +766,7 @@ namespace cpu {
                                     break;
                                     case 1: {
                                         registers.set_pc(pop());
-                                        //Todo - Needs Interrupts - Enable Interrupts after this instruction
+                                        IME = true;
                                     }
                                     case 2: {
                                         registers.set_pc(registers.get_hl());
@@ -809,11 +841,11 @@ namespace cpu {
                                 }
                                 break;
                                 case 6: {
-                                    //Todo - Requires Interrrupts - Implement DI
+                                    IME = false;
                                 }
                                 break;
                                 case 7: {
-                                    //Todo - Requires Interrupts - Implement EI
+                                    IME = true;
                                 }
                             }
                         }

@@ -244,7 +244,6 @@ namespace graphics {
         uint8_t LYC = get_memory(0xFF45);
 
         uint8_t old_stat = get_memory(0xFF41);
-        //Todo: interrupts
 
         set_memory(0xFF41, (old_stat & 0b11111000) | ((uint8_t) mode) | ((LYC == LY) << 2));
     }
@@ -264,6 +263,7 @@ namespace graphics {
             if (LY > 143) {
                 pixel_fetcher_memory.window_line_counter = 0;
                 mode = Mode::Mode_1;
+                set_memory(0xFF0F, get_memory(0xFF0F) | 0b000'00001);
             } else {
                 mode = Mode::Mode_2;
             }
